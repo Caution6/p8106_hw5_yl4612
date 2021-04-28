@@ -25,22 +25,63 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 \newpage
 
 ```{r}
-
+library(tidyverse)
+library(ISLR)
+library(caret)
+library(e1071)
 ```
 
 Load, clean, and tidy data
 
 ```{r}
+data("OJ")
 
+set.seed(1)
+
+oj = OJ %>% 
+  janitor::clean_names()
+
+rowTrain <- createDataPartition(y = oj$purchase,
+                                p = 799/1070,
+                                list = FALSE)
+
+train <- oj[rowTrain, ]
+
+test <- oj[-rowTrain, ]
 ```
 
 # Question a
 
 ```{r}
+ctrl <- trainControl(method = "cv")
 
+set.seed(1)
+
+svml.fit <- train(purchase ~ ., 
+                  data = train, 
+                  method = "svmLinear2",
+                  preProcess = c("center", "scale"),
+                  tuneGrid = data.frame(cost = exp(seq(-5,-1,len = 50))),
+                  trControl = ctrl)
+
+svml.fit$finalModel
+
+svml.fit$bestTune
+
+ggplot(svml.fit, highlight = TRUE)
+
+pred_train = predict(svml.fit)
+
+mean(train$purchase != pred_train)
+
+pred_test = predict(svml.fit, newdata = test, type = "raw")
+
+mean(test$purchase != pred_test)
 ```
 
+The training error rate is 0.17.
 
+The test error rate is 0.15.
 
 # Question b
 
