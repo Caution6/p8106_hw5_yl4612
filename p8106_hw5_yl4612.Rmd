@@ -29,6 +29,8 @@ library(tidyverse)
 library(ISLR)
 library(caret)
 library(e1071)
+library(mlbench)
+library(kernlab)
 ```
 
 Load, clean, and tidy data
@@ -57,35 +59,62 @@ ctrl <- trainControl(method = "cv")
 
 set.seed(1)
 
-svml.fit <- train(purchase ~ ., 
+svml_fit <- train(purchase ~ ., 
                   data = train, 
                   method = "svmLinear2",
                   preProcess = c("center", "scale"),
                   tuneGrid = data.frame(cost = exp(seq(-5,-1,len = 50))),
                   trControl = ctrl)
 
-svml.fit$finalModel
+svml_fit$finalModel
 
-svml.fit$bestTune
+svml_fit$bestTune
 
-ggplot(svml.fit, highlight = TRUE)
+ggplot(svml_fit, highlight = TRUE)
 
-pred_train = predict(svml.fit)
+pred_train = predict(svml_fit)
 
 mean(train$purchase != pred_train)
 
-pred_test = predict(svml.fit, newdata = test, type = "raw")
+pred_test = predict(svml_fit, newdata = test, type = "raw")
 
 mean(test$purchase != pred_test)
 ```
 
 The training error rate is 0.17.
 
-The test error rate is 0.15.
+The test error rate is 0.152.
 
 # Question b
 
 ```{r}
+svmr_grid = expand.grid(C = exp(seq(-5,1,len = 20)),
+                         sigma = exp(seq(-5,0,len = 10)))
 
+set.seed(1)
+
+svmr_fit <- train(purchase ~ ., 
+                  data = train,
+                  method = "svmRadial",
+                  preProcess = c("center", "scale"),
+                  tuneGrid = svmr_grid,
+                  trControl = ctrl)
+
+svmr_fit$finalModel
+
+svmr_fit$bestTune
+
+ggplot(svmr_fit, highlight = TRUE)
+
+pred_train1 = predict(svmr_fit)
+
+mean(train$purchase != pred_train1)
+
+pred_test1 = predict(svmr_fit, newdata = test, type = "raw")
+
+mean(test$purchase != pred_test1)
 ```
 
+The training error rate is 0.1575.
+
+The test error rate is 0.1556.
